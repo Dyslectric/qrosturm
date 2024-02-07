@@ -1,10 +1,15 @@
 #pragma once
 
+struct Buffer;
+
 enum Key {
 	ToDo
 };
 
 namespace qrosturm {
+
+	static Buffer *screen_buffer;
+	
 	struct WindowPosition {
 		int line;
 		int column;

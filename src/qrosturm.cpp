@@ -1,118 +1,88 @@
 #include <Windows.h>
+#include <algorithm>
 #include <stdio.h>
+#include <vector>
 
 #include "qrosturm.h"
 
 using namespace qrosturm;
 
+struct Buffer {
+#ifdef _WIN32
+    HANDLE out_handle;
+    std::vector<CHAR_INFO> chr_buffer;
+    COORD size;
+#else
+
+#endif
+};
+
 // get max size of terminal for window and create a buffer of that size
 void qrosturm::init() {
 #ifdef _WIN32
-	HANDLE hStdOut;
-	HANDLE hNewScreenBuffer;
-    SMALL_RECT srctReadRect;
-    SMALL_RECT srctWriteRect;
-    CHAR_INFO chrBuffer[160]; // [2][80];
-    COORD coordBufSize;
-    COORD coordBufCoord;
-    BOOL fSuccess;
+    qrosturm::screen_buffer = new Buffer;
 
-    PCONSOLE_SCREEN_BUFFER_INFO buffer_info;
-    hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    auto buffer = qrosturm::screen_buffer;
 
-    GetConsoleScreenBufferInfo(hStdOut, buffer_info);
+    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    //
-    //
-    //  Here is where you were working dude
-    //
-    //
-    buffer_info.
-
-	hNewScreenBuffer = CreateConsoleScreenBuffer(
-		GENERIC_READ | GENERIC_WRITE,
-		FILE_SHARE_READ | FILE_SHARE_WRITE,
-		NULL,
-		CONSOLE_TEXTMODE_BUFFER,
-		NULL);
-
-    if (hStdOut == INVALID_HANDLE_VALUE ||
-        hNewScreenBuffer == INVALID_HANDLE_VALUE)
-    {
+    if (hStdOut == INVALID_HANDLE_VALUE) {
         printf("CreateConsoleScreenBuffer failed - (%d)\n", GetLastError());
         exit(1);
     }
 
-    // Make the new screen buffer the active screen buffer.
+    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+    GetConsoleScreenBufferInfo(hStdOut, &csbiInfo);
 
-    if (!SetConsoleActiveScreenBuffer(hNewScreenBuffer))
-    {
-        printf("SetConsoleActiveScreenBuffer failed - (%d)\n", GetLastError());
+    buffer->out_handle = CreateConsoleScreenBuffer(
+        GENERIC_READ |
+        GENERIC_WRITE,
+        FILE_SHARE_READ |
+        FILE_SHARE_WRITE,
+        NULL,
+        CONSOLE_TEXTMODE_BUFFER,
+        NULL
+    );
+
+    if (buffer->out_handle == INVALID_HANDLE_VALUE) {
+        printf("CreateConsoleScreenBuffer failed - (%d)\n", GetLastError());
         exit(1);
     }
 
-    // Set the source rectangle.
+    buffer->size.X = csbiInfo.srWindow.Right;
+    buffer->size.Y = csbiInfo.srWindow.Bottom;
 
-    srctReadRect.Top = 10;    // top left: row 0, col 0
-    srctReadRect.Left = 10;
-    srctReadRect.Bottom = 15; // bot. right: row 1, col 79
-    srctReadRect.Right = 60;
+    buffer->chr_buffer = std::vector<CHAR_INFO>(buffer->size.X * buffer->size.Y);
 
-    // The temporary buffer size is 2 rows x 80 columns.
+    CHAR_INFO info;
+    info.Char.UnicodeChar = L' ';
+    info.Attributes = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 
-    coordBufSize.Y = 2;
-    coordBufSize.X = 80;
+    std::fill(buffer->chr_buffer.begin(), buffer->chr_buffer.end(), info);
 
-    // The top left destination cell of the temporary buffer is
-    // row 0, col 0.
+    COORD origin;
+    origin.X = 0;
+    origin.Y = 0;
 
-    coordBufCoord.X = 0;
-    coordBufCoord.Y = 0;
+    SMALL_RECT dst_rect;
+    dst_rect.Top = 0;
+    dst_rect.Left = 0;
+    dst_rect.Right = buffer->size.X;
+    dst_rect.Bottom = buffer->size.Y;
 
-    // Copy the block from the screen buffer to the temp. buffer.
+    WriteConsoleOutput(
+        buffer->out_handle,
+        buffer->chr_buffer.data(),
+        buffer->size,
+        origin,
+        &dst_rect);
 
-    fSuccess = ReadConsoleOutput(
-        hStdOut,        // screen buffer to read from
-        chrBuffer,      // buffer to copy into
-        coordBufSize,   // col-row size of chiBuffer
-        coordBufCoord,  // top left dest. cell in chiBuffer
-        &srctReadRect); // screen buffer source rectangle
-    if (!fSuccess)
-    {
-        printf("ReadConsoleOutput failed - (%d)\n", GetLastError());
-        exit(1);
-    }
+    Sleep(1000);
+    SetConsoleActiveScreenBuffer(buffer->out_handle);
 
-    // Set the destination rectangle.
-
-    srctWriteRect.Top = 10;    // top lt: row 10, col 0
-    srctWriteRect.Left = 10;
-    srctWriteRect.Bottom = 15; // bot. rt: row 11, col 79
-    srctWriteRect.Right = 60;
-
-    // Copy from the temporary buffer to the new screen buffer.
-
-    fSuccess = WriteConsoleOutput(
-        hNewScreenBuffer, // screen buffer to write to
-        chrBuffer,        // buffer to copy from
-        coordBufSize,     // col-row size of chiBuffer
-        coordBufCoord,    // top left src cell in chiBuffer
-        &srctWriteRect);  // dest. screen buffer rectangle
-    if (!fSuccess)
-    {
-        printf("WriteConsoleOutput failed - (%d)\n", GetLastError());
-        exit(1);
-    }
     Sleep(5000);
 
-    // Restore the original active screen buffer.
-
-    if (!SetConsoleActiveScreenBuffer(hStdOut))
-    {
-        printf("SetConsoleActiveScreenBuffer failed - (%d)\n", GetLastError());
-        exit(1);
-    }
-
+    SetConsoleActiveScreenBuffer(hStdOut);
 #else
 
 #endif
