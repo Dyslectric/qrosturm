@@ -28,7 +28,7 @@ namespace qrosturm {
 	enum CursorMode {};
 
 	void init();
-	void clear();
+	void clear(char clr_character);
 	void refresh();
 	void set_echo();
 	void set_echo_off();

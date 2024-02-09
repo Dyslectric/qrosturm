@@ -17,6 +17,10 @@ struct Buffer {
 #endif
 };
 
+#ifdef _WIN32
+static HANDLE StdOut;
+#endif
+
 // get max size of terminal for window and create a buffer of that size
 void qrosturm::init() {
 #ifdef _WIN32
@@ -54,15 +58,38 @@ void qrosturm::init() {
 
     buffer->chr_buffer = std::vector<CHAR_INFO>(buffer->size.X * buffer->size.Y);
 
+    StdOut = hStdOut;
+
+    qrosturm::clear(' ');
+
+    SetConsoleActiveScreenBuffer(buffer->out_handle);
+#else
+
+#endif
+}
+
+void qrosturm::clear(char clr_character) {
+#ifdef _WIN32
+
+    auto buffer = qrosturm::screen_buffer;
+
     CHAR_INFO info;
-    info.Char.UnicodeChar = L' ';
+    info.Char.UnicodeChar = clr_character;
     info.Attributes = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 
     std::fill(buffer->chr_buffer.begin(), buffer->chr_buffer.end(), info);
+#else
 
+#endif
+}
+
+void qrosturm::refresh() {
+#ifdef _WIN32
     COORD origin;
     origin.X = 0;
     origin.Y = 0;
+
+    auto buffer = qrosturm::screen_buffer;
 
     SMALL_RECT dst_rect;
     dst_rect.Top = 0;
@@ -76,29 +103,6 @@ void qrosturm::init() {
         buffer->size,
         origin,
         &dst_rect);
-
-    Sleep(1000);
-    SetConsoleActiveScreenBuffer(buffer->out_handle);
-
-    Sleep(5000);
-
-    SetConsoleActiveScreenBuffer(hStdOut);
-#else
-
-#endif
-}
-
-void qrosturm::clear() {
-#ifdef _WIN32
-
-#else
-
-#endif
-}
-
-void qrosturm::refresh() {
-#ifdef _WIN32
-
 #else
 
 #endif
@@ -122,7 +126,7 @@ void qrosturm::set_echo_off() {
 
 void qrosturm::end() {
 #ifdef _WIN32
-
+    SetConsoleActiveScreenBuffer(StdOut);
 #else
 
 #endif
