@@ -11,6 +11,7 @@ int main() {
 	qrosturm::init();
 	qrosturm::clear('#');
 	qrosturm::refresh();
+	qrosturm::get_key();
 
 	Sleep(5000);
 

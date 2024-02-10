@@ -132,8 +132,41 @@ void qrosturm::end() {
 #endif
 }
 
+bool getconchar(KEY_EVENT_RECORD& krec)
+{
+    DWORD cc;
+    INPUT_RECORD irec;
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+
+    if (h == NULL)
+    {
+        return false; // console not found
+    }
+
+    for (; ; )
+    {
+        ReadConsoleInput(h, &irec, 1, &cc);
+        if (irec.EventType == KEY_EVENT
+            && ((KEY_EVENT_RECORD&)irec.Event).bKeyDown
+            )//&& ! ((KEY_EVENT_RECORD&)irec.Event).wRepeatCount )
+        {
+            krec = (KEY_EVENT_RECORD&)irec.Event;
+            return true;
+        }
+    }
+    return false; //future ????
+}
+
 Key qrosturm::get_key() {
 #ifdef _WIN32
+    KEY_EVENT_RECORD key;
+    
+    for( ; ; )
+    {
+        getconchar( key );
+        printf("Key: %c\nCode: %i\n", key.uChar.AsciiChar, key.wVirtualKeyCode);
+    }
+
     return ToDo;
 #else
 
