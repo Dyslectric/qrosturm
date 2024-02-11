@@ -35,7 +35,7 @@ int main() {
 
 	while (true) {
 		qrosturm::clear('#');
-		qrosturm::set_cursor_position(3, 8);
+		qrosturm::set_print_coord(3, 8);
 		qrosturm::print("Hello World!");
 		qrosturm::refresh();
 		do {
@@ -48,7 +48,7 @@ int main() {
 			qrosturm::poll_events();
 		} while (!is_delta_time(150, last_refresh));
 		qrosturm::clear('$');
-		qrosturm::set_cursor_position(6, 4);
+		qrosturm::set_print_coord(6, 4);
 		qrosturm::print("Hello World!");
 		qrosturm::refresh();
 		do {

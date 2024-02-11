@@ -116,21 +116,21 @@ void qrosturm::refresh() {
 #endif
 }
 
-void qrosturm::set_echo() {
-#ifdef _WIN32
-
-#else
-
-#endif
-}
-
-void qrosturm::set_echo_off() {
-#ifdef _WIN32
-
-#else
-
-#endif
-}
+//void qrosturm::set_echo() {
+//#ifdef _WIN32
+//
+//#else
+//
+//#endif
+//}
+//
+//void qrosturm::set_echo_off() {
+//#ifdef _WIN32
+//
+//#else
+//
+//#endif
+//}
 
 void qrosturm::end() {
 #ifdef _WIN32
@@ -200,7 +200,7 @@ qrosturm::Event qrosturm::poll_events() {
 //#endif
 //}
 
-void qrosturm::set_cursor_position(int line, int column) {
+void qrosturm::set_print_coord(int line, int column) {
 #ifdef _WIN32
     qrosturm::cursor_pos.line = line;
     qrosturm::cursor_pos.column = column;
