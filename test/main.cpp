@@ -35,23 +35,25 @@ int main() {
 
 	while (true) {
 		qrosturm::clear('#');
+		qrosturm::set_cursor_position(3, 8);
 		qrosturm::print("Hello World!");
 		qrosturm::refresh();
-		while (!is_delta_time(500, last_refresh)) {
+		do {
 			qrosturm::poll_events();
-		}
+		} while (!is_delta_time(150, last_refresh));
 		qrosturm::clear(';');
 		qrosturm::print("Hello World!");
 		qrosturm::refresh();
-		while (!is_delta_time(500, last_refresh)) {
+		do {
 			qrosturm::poll_events();
-		}
+		} while (!is_delta_time(150, last_refresh));
 		qrosturm::clear('$');
+		qrosturm::set_cursor_position(6, 4);
 		qrosturm::print("Hello World!");
 		qrosturm::refresh();
-		while (!is_delta_time(500, last_refresh)) {
+		do {
 			qrosturm::poll_events();
-		}
+		} while (!is_delta_time(150, last_refresh));
 	}
 	//while (char key = qrosturm::get_key_ascii()) {
 	//	char str[1] = { key };

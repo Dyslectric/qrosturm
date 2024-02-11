@@ -42,7 +42,7 @@ namespace qrosturm {
 	void set_echo_off();
 	void end();
 	Event poll_events();
-	void move_cursor(WindowPosition position);
+	void set_cursor_position(int line, int column);
 	void print(std::string str);
 	WindowDimensions get_max_dimensions();
 }

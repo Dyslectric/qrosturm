@@ -200,9 +200,10 @@ qrosturm::Event qrosturm::poll_events() {
 //#endif
 //}
 
-void qrosturm::move_cursor(WindowPosition position) {
+void qrosturm::set_cursor_position(int line, int column) {
 #ifdef _WIN32
-
+    qrosturm::cursor_pos.line = line;
+    qrosturm::cursor_pos.column = column;
 #else
 
 #endif
@@ -213,13 +214,25 @@ void qrosturm::print(std::string str) {
     int strlen = str.length();
     const char* c_str = str.c_str();
 
-    for (int i = 0; i < qrosturm::screen_buffer->chr_buffer.size(); i++) {
+    int chr_buffer_cursor_index =
+        qrosturm::cursor_pos.line * qrosturm::screen_buffer->size.X + qrosturm::cursor_pos.column;
+
+    for (int i = 0; i < strlen; i++) {
+        if (chr_buffer_cursor_index > qrosturm::screen_buffer->chr_buffer.size()) {
+            break;
+        }
         if (c_str[i] == '\0') {
             break;
         }
         
-        qrosturm::screen_buffer->chr_buffer[i].Char.UnicodeChar = c_str[i];
+        qrosturm::screen_buffer->chr_buffer[chr_buffer_cursor_index].Char.UnicodeChar = c_str[i];
+        chr_buffer_cursor_index++;
     }
+
+    int new_chr_buffer_cursor_index = chr_buffer_cursor_index + strlen;
+
+    qrosturm::cursor_pos.line = new_chr_buffer_cursor_index / qrosturm::screen_buffer->size.X;
+    qrosturm::cursor_pos.column = new_chr_buffer_cursor_index % qrosturm::screen_buffer->size.X;
 #else
 
 #endif
