@@ -35,6 +35,8 @@ void qrosturm::init() {
         exit(1);
     }
 
+    StdOut = hStdOut;
+
     CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
     GetConsoleScreenBufferInfo(hStdOut, &csbiInfo);
 
@@ -58,11 +60,15 @@ void qrosturm::init() {
 
     buffer->chr_buffer = std::vector<CHAR_INFO>(buffer->size.X * buffer->size.Y);
 
-    StdOut = hStdOut;
-
     qrosturm::clear(' ');
 
     SetConsoleActiveScreenBuffer(buffer->out_handle);
+
+    WindowPosition origin;
+    origin.column = 0;
+    origin.line = 0;
+
+    qrosturm::cursor_pos = origin;
 #else
 
 #endif
@@ -103,6 +109,8 @@ void qrosturm::refresh() {
         buffer->size,
         origin,
         &dst_rect);
+
+    SetConsoleActiveScreenBuffer(qrosturm::screen_buffer->out_handle);
 #else
 
 #endif
@@ -132,46 +140,65 @@ void qrosturm::end() {
 #endif
 }
 
-bool getconchar(KEY_EVENT_RECORD& krec)
-{
-    DWORD cc;
-    INPUT_RECORD irec;
-    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+qrosturm::Event qrosturm::poll_events() {
+#ifdef _WIN32
 
-    if (h == NULL)
+    DWORD input_count;
+    INPUT_RECORD input_record;
+    HANDLE input_handle = GetStdHandle(STD_INPUT_HANDLE);
+
+    if (input_handle == NULL)
     {
-        return false; // console not found
+        printf("Was not able to get handle to input.");
+        exit(1);
     }
 
-    for (; ; )
-    {
-        ReadConsoleInput(h, &irec, 1, &cc);
-        if (irec.EventType == KEY_EVENT
-            && ((KEY_EVENT_RECORD&)irec.Event).bKeyDown
-            )//&& ! ((KEY_EVENT_RECORD&)irec.Event).wRepeatCount )
-        {
-            krec = (KEY_EVENT_RECORD&)irec.Event;
-            return true;
+    DWORD n_events_not_read = 0;
+    GetNumberOfConsoleInputEvents(input_handle, &n_events_not_read);
+
+    for (; n_events_not_read > 0; n_events_not_read--) {
+        ReadConsoleInput(input_handle, &input_record, 1, &input_count);
+
+        if (input_record.EventType == WINDOW_BUFFER_SIZE_EVENT) {
+            WindowDimensions dim;
+            dim.columns = input_record.Event.WindowBufferSizeEvent.dwSize.X;
+            dim.lines = input_record.Event.WindowBufferSizeEvent.dwSize.Y;
+
+            qrosturm::screen_buffer->chr_buffer.resize(dim.columns * dim.lines);
+
+            SetConsoleScreenBufferSize(qrosturm::screen_buffer->out_handle, input_record.Event.WindowBufferSizeEvent.dwSize);
+
+            qrosturm::screen_buffer->size = input_record.Event.WindowBufferSizeEvent.dwSize;
+
+            //SetConsoleScreenBufferInfo(qrosturm::screen_buffer->out_handle, )
+
+            continue;
+        } else if (
+            input_record.EventType == KEY_EVENT
+        ) {
+            qrosturm::Event event;
+            event.type = qrosturm::EventType::Key; 
+            return event;
         }
     }
-    return false; //future ????
-}
 
-Key qrosturm::get_key() {
-#ifdef _WIN32
-    KEY_EVENT_RECORD key;
-    
-    for( ; ; )
-    {
-        getconchar( key );
-        printf("Key: %c\nCode: %i\n", key.uChar.AsciiChar, key.wVirtualKeyCode);
-    }
+    Event event;
+    event.type = qrosturm::EventType::Wait;
+    return event;
 
-    return ToDo;
 #else
 
 #endif
 }
+
+//int qrosturm::get_key_ascii() {
+//#ifdef _WIN32
+//    KEY_EVENT_RECORD key;
+//    
+//#else
+//
+//#endif
+//}
 
 void qrosturm::move_cursor(WindowPosition position) {
 #ifdef _WIN32
@@ -181,17 +208,33 @@ void qrosturm::move_cursor(WindowPosition position) {
 #endif
 }
 
-void qrosturm::print(const char* fmt, ...) {
+void qrosturm::print(std::string str) {
 #ifdef _WIN32
+    int strlen = str.length();
+    const char* c_str = str.c_str();
 
+    for (int i = 0; i < qrosturm::screen_buffer->chr_buffer.size(); i++) {
+        if (c_str[i] == '\0') {
+            break;
+        }
+        
+        qrosturm::screen_buffer->chr_buffer[i].Char.UnicodeChar = c_str[i];
+    }
 #else
 
 #endif
 }
 
-WindowDimensions get_max_dimensions() {
+WindowDimensions qrosturm::get_max_dimensions() {
 #ifdef _WIN32
     WindowDimensions dimensions;
+
+    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+    GetConsoleScreenBufferInfo(StdOut, &csbiInfo);
+
+    dimensions.columns = csbiInfo.srWindow.Right - csbiInfo.srWindow.Left;
+    dimensions.lines = csbiInfo.srWindow.Bottom - csbiInfo.srWindow.Top;
+    
     return dimensions;
 #else
 
