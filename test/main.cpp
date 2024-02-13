@@ -29,40 +29,34 @@ int main() {
 	std::cout << "Hello!";
 
 	qrosturm::init();
-	//qrosturm::clear('#');
+	qrosturm::clear(' ');
 
 	long long int last_refresh = now();
 
 	while (true) {
-		qrosturm::clear('#');
-		qrosturm::set_print_coord(3, 8);
-		qrosturm::print("Hello World!");
-		qrosturm::refresh();
-		do {
-			qrosturm::poll_events();
-		} while (!is_delta_time(150, last_refresh));
-		qrosturm::clear(';');
-		qrosturm::print("Hello World!");
-		qrosturm::refresh();
-		do {
-			qrosturm::poll_events();
-		} while (!is_delta_time(150, last_refresh));
-		qrosturm::clear('$');
-		qrosturm::set_print_coord(6, 4);
-		qrosturm::print("Hello World!");
-		qrosturm::refresh();
-		do {
-			qrosturm::poll_events();
-		} while (!is_delta_time(150, last_refresh));
-	}
-	//while (char key = qrosturm::get_key_ascii()) {
-	//	char str[1] = { key };
-	//	std::string my_string;
-	//	my_string.append(str);
-	//	qrosturm::print(my_string);
-	//}
+		//do {
+		//	qrosturm::poll_events();
+		//} while (!is_delta_time(150, last_refresh));
+		//qrosturm::clear('#');
+		//qrosturm::set_print_coord(3, 8);
+		//qrosturm::print("Hello World!");
+		//qrosturm::refresh();
+		
+		qrosturm::Event event = qrosturm::poll_event();
 
-	Sleep(5000);
+		if (
+			event.type == qrosturm::EventType::Key &&
+			event.key.type == qrosturm::KeyEventType::Letter
+		) {
+			std::string str = "";
+			str += event.key.letter;
+			qrosturm::print(str);
+			qrosturm::refresh();
+		}
+
+		//qrosturm::clear(' ');
+
+	}
 
 	qrosturm::end();
 	

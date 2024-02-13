@@ -140,7 +140,7 @@ void qrosturm::end() {
 #endif
 }
 
-qrosturm::Event qrosturm::poll_events() {
+qrosturm::Event qrosturm::poll_event() {
 #ifdef _WIN32
 
     DWORD input_count;
@@ -177,17 +177,28 @@ qrosturm::Event qrosturm::poll_events() {
             input_record.EventType == KEY_EVENT
         ) {
             qrosturm::Event event;
+
             event.type = qrosturm::EventType::Key; 
+            event.key.type = qrosturm::KeyEventType::Letter;
+            event.key.letter = input_record.Event.KeyEvent.uChar.UnicodeChar;
+
             return event;
         }
     }
 
     Event event;
-    event.type = qrosturm::EventType::Wait;
+    event.type = qrosturm::EventType::Empty;
     return event;
 
 #else
 
+#endif
+}
+
+void qrosturm::read_line(const char* buf, int maxlen) {
+#ifdef _WIN32
+
+#else
 #endif
 }
 

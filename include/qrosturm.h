@@ -8,11 +8,26 @@ namespace qrosturm {
 
 	enum EventType {
 		Key,
-		Wait
+		Empty
+	};
+
+	enum NamedKey {
+		Space, Escape, Enter
+	};
+
+	enum KeyEventType {
+		Letter, Named
+	};
+
+	struct KeyEvent {
+		KeyEventType type;
+		char letter;
+		NamedKey named;
 	};
 
 	struct Event {
 		EventType type;
+		KeyEvent key;
 	};
 
 	struct WindowPosition {
@@ -49,7 +64,7 @@ namespace qrosturm {
 	void end();
 
 	// unimplemented for the most part, will return key events, etc
-	Event poll_events();
+	Event poll_event();
 
 	// sets the line x column coordinate for printing
 	void set_print_coord(int line, int column);
@@ -61,6 +76,8 @@ namespace qrosturm {
 	// returns the lines x columns dimensions of the the buffer
 	// the buffer automatically resizes to the dimensions of the screen when it is resized
 	WindowDimensions get_max_dimensions();
+
+	void read_line(const char* buf, int maxlen);
 
 	// not yet implemented, thinking of adding different echo modes like numbers
 	// only and the like for stuff like integer collection
