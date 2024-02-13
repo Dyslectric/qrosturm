@@ -16,13 +16,18 @@ namespace qrosturm {
 	};
 
 	enum KeyEventType {
-		Letter, Named
+		Letter, Named, Other
+	};
+
+	enum ButtonState {
+		Up, Down
 	};
 
 	struct KeyEvent {
 		KeyEventType type;
 		char letter;
 		NamedKey named;
+		ButtonState state;
 	};
 
 	struct Event {

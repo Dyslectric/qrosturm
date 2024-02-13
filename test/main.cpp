@@ -46,10 +46,16 @@ int main() {
 
 		if (
 			event.type == qrosturm::EventType::Key &&
-			event.key.type == qrosturm::KeyEventType::Letter
+			event.key.type == qrosturm::KeyEventType::Letter &&
+			event.key.state == qrosturm::ButtonState::Down
 		) {
-			std::string str = "";
-			str += event.key.letter;
+			std::string str = "Keydown:Unicode:";
+
+			int unicode = event.key.letter;
+
+			str += std::to_string(unicode);
+			str += " ";
+
 			qrosturm::print(str);
 			qrosturm::refresh();
 		}

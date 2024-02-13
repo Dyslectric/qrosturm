@@ -182,6 +182,13 @@ qrosturm::Event qrosturm::poll_event() {
             event.key.type = qrosturm::KeyEventType::Letter;
             event.key.letter = input_record.Event.KeyEvent.uChar.UnicodeChar;
 
+            if (input_record.Event.KeyEvent.bKeyDown) {
+                event.key.state = ButtonState::Down;
+            }
+            else {
+                event.key.state = ButtonState::Up;
+            }
+
             return event;
         }
     }
@@ -240,7 +247,7 @@ void qrosturm::print(std::string str) {
         chr_buffer_cursor_index++;
     }
 
-    int new_chr_buffer_cursor_index = chr_buffer_cursor_index + strlen;
+    int new_chr_buffer_cursor_index = chr_buffer_cursor_index;
 
     qrosturm::cursor_pos.line = new_chr_buffer_cursor_index / qrosturm::screen_buffer->size.X;
     qrosturm::cursor_pos.column = new_chr_buffer_cursor_index % qrosturm::screen_buffer->size.X;
