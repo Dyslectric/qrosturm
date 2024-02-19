@@ -12,7 +12,18 @@ namespace qrosturm {
 	};
 
 	enum NamedKey {
-		Space, Escape, Enter
+#ifdef _WIN32
+		Backspace = 8,
+		Tab = 9,
+		Enter = 13,
+		Return = 13,
+		Escape = 27,
+		LeftArrow = 100,
+		RightArrow = 101,
+		DownArrow = 102,
+		UpArrow = 103
+#else
+#endif
 	};
 
 	enum KeyEventType {
@@ -26,7 +37,7 @@ namespace qrosturm {
 	struct KeyEvent {
 		KeyEventType type;
 		char letter;
-		NamedKey named;
+		NamedKey name;
 		ButtonState state;
 	};
 
@@ -80,7 +91,7 @@ namespace qrosturm {
 
 	// returns the lines x columns dimensions of the the buffer
 	// the buffer automatically resizes to the dimensions of the screen when it is resized
-	WindowDimensions get_max_dimensions();
+	//WindowDimensions get_max_dimensions();
 
 	void read_line(const char* buf, int maxlen);
 

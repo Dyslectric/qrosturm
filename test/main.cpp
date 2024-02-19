@@ -24,14 +24,28 @@ bool is_delta_time(long long delta, long long &last_refresh) {
 	}
 }
 
+/* 2 column per tile
+*  ################################
+*  ########################      ##
+*  ######                        ##
+*  ######  ####  ##########      ##
+*  ############  ##########      ##
+*  ##########      ######        ##
+*  ##      ##  :D  ########      ##
+*  ##      ##      ######        ##
+*  ##      ################      ##
+*  ##                            ##
+*  ################################
+*/
+
 int main() {
 
 	std::cout << "Hello!";
 
-	qrosturm::init();
-	qrosturm::clear(' ');
+	//qrosturm::init();
+	//qrosturm::clear(' ');
 
-	long long int last_refresh = now();
+	//long long int last_refresh = now();
 
 	while (true) {
 		//do {
@@ -44,21 +58,78 @@ int main() {
 		
 		qrosturm::Event event = qrosturm::poll_event();
 
-		if (
-			event.type == qrosturm::EventType::Key &&
-			event.key.type == qrosturm::KeyEventType::Letter &&
-			event.key.state == qrosturm::ButtonState::Down
-		) {
-			std::string str = "Keydown:Unicode:";
+		switch (event.type) {
+		case qrosturm::EventType::Key:
+			switch (event.key.type) {
+			case qrosturm::KeyEventType::Letter:
+				std::cout << "Letter: " << event.key.letter << " ";
+				break;
+			case qrosturm::KeyEventType::Named:
+				std::cout << "Named: ";
+				switch (event.key.name) {
+				case qrosturm::NamedKey::Backspace:
+					std::cout << "Backspace ";
+					break;
+				case qrosturm::NamedKey::Tab:
+					std::cout << "Tab ";
+					break;
+				case qrosturm::NamedKey::Enter:
+					std::cout << "Enter ";
+					break;
+				case qrosturm::NamedKey::Escape:
+					std::cout << "Escape ";
+					break;
+				case qrosturm::NamedKey::LeftArrow:
+					std::cout << "LeftArrow ";
+					break;
+				case qrosturm::NamedKey::RightArrow:
+					std::cout << "RightArrow ";
+					break;
+				case qrosturm::NamedKey::DownArrow:
+					std::cout << "DownArrow ";
+					break;
+				case qrosturm::NamedKey::UpArrow:
+					std::cout << "UpArrow ";
+					break;
+				}
+				break;
+			}
 
-			int unicode = event.key.letter;
+			if (event.key.type != qrosturm::KeyEventType::Other) {
+				switch (event.key.state) {
+				case qrosturm::ButtonState::Up:
+					std::cout << "Up ";
+					break;
+				case qrosturm::ButtonState::Down:
+					std::cout << "Down ";
+				}
 
-			str += std::to_string(unicode);
-			str += " ";
+				std::cout << "\n";
+			}
+			else {
+				std::cout << event.key.letter << "yo";
+			}
 
-			qrosturm::print(str);
-			qrosturm::refresh();
+			break;
+		case qrosturm::EventType::Empty:
+			break;
 		}
+
+		//if (
+		//	event.type == qrosturm::EventType::Key &&
+		//	event.key.type == qrosturm::KeyEventType::Letter &&
+		//	event.key.state == qrosturm::ButtonState::Down
+		//) {
+		//	std::string str = "Keydown:Unicode:";
+
+		//	int unicode = event.key.letter;
+
+		//	str += std::to_string(unicode);
+		//	str += " ";
+
+		//	qrosturm::print(str);
+		//	qrosturm::refresh();
+		//}
 
 		//qrosturm::clear(' ');
 

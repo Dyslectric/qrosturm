@@ -140,6 +140,81 @@ void qrosturm::end() {
 #endif
 }
 
+#ifdef _WIN32
+void handle_resize(INPUT_RECORD input_record) {
+    WindowDimensions dim;
+    dim.columns = input_record.Event.WindowBufferSizeEvent.dwSize.X;
+    dim.lines = input_record.Event.WindowBufferSizeEvent.dwSize.Y;
+
+    CHAR_INFO chr;
+    chr.Char.UnicodeChar = ' ';
+
+    qrosturm::screen_buffer->chr_buffer.resize(dim.columns * dim.lines, chr);
+
+    SetConsoleScreenBufferSize(qrosturm::screen_buffer->out_handle, input_record.Event.WindowBufferSizeEvent.dwSize);
+
+    qrosturm::screen_buffer->size = input_record.Event.WindowBufferSizeEvent.dwSize;
+}
+
+Event parse_key_event(INPUT_RECORD input) {
+    qrosturm::Event event;
+
+    event.type = EventType::Key;
+
+    int chr = input.Event.KeyEvent.uChar.UnicodeChar;
+    int vkeycode = input.Event.KeyEvent.wVirtualKeyCode;
+
+    if (vkeycode == VK_LEFT) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::LeftArrow;
+    }
+    else if (vkeycode == VK_RIGHT) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::RightArrow;
+    }
+    else if (vkeycode == VK_DOWN) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::DownArrow;
+    }
+    else if (vkeycode == VK_UP) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::UpArrow;
+    }
+    else if (chr == NamedKey::Backspace) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::Backspace;
+    }
+    else if (chr == NamedKey::Tab) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::Tab;
+    }
+    else if (chr == NamedKey::Enter) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::Enter;
+    }
+    else if (chr == NamedKey::Escape) {
+        event.key.type = KeyEventType::Named;
+        event.key.name = NamedKey::Escape;
+    }
+    else if (chr >= 32 && chr <= 127) {
+        event.key.type = KeyEventType::Letter;
+        event.key.letter = chr;
+    }
+    else {
+        event.key.type = KeyEventType::Other;
+    }
+
+    if (input.Event.KeyEvent.bKeyDown) {
+        event.key.state = ButtonState::Down;
+    }
+    else {
+        event.key.state = ButtonState::Up;
+    }
+
+    return event;
+}
+#endif
+
 qrosturm::Event qrosturm::poll_event() {
 #ifdef _WIN32
 
@@ -160,36 +235,12 @@ qrosturm::Event qrosturm::poll_event() {
         ReadConsoleInput(input_handle, &input_record, 1, &input_count);
 
         if (input_record.EventType == WINDOW_BUFFER_SIZE_EVENT) {
-            WindowDimensions dim;
-            dim.columns = input_record.Event.WindowBufferSizeEvent.dwSize.X;
-            dim.lines = input_record.Event.WindowBufferSizeEvent.dwSize.Y;
-
-            qrosturm::screen_buffer->chr_buffer.resize(dim.columns * dim.lines);
-
-            SetConsoleScreenBufferSize(qrosturm::screen_buffer->out_handle, input_record.Event.WindowBufferSizeEvent.dwSize);
-
-            qrosturm::screen_buffer->size = input_record.Event.WindowBufferSizeEvent.dwSize;
-
-            //SetConsoleScreenBufferInfo(qrosturm::screen_buffer->out_handle, )
-
+            handle_resize(input_record);
             continue;
         } else if (
             input_record.EventType == KEY_EVENT
         ) {
-            qrosturm::Event event;
-
-            event.type = qrosturm::EventType::Key; 
-            event.key.type = qrosturm::KeyEventType::Letter;
-            event.key.letter = input_record.Event.KeyEvent.uChar.UnicodeChar;
-
-            if (input_record.Event.KeyEvent.bKeyDown) {
-                event.key.state = ButtonState::Down;
-            }
-            else {
-                event.key.state = ButtonState::Up;
-            }
-
-            return event;
+            return parse_key_event(input_record);
         }
     }
 
@@ -256,18 +307,18 @@ void qrosturm::print(std::string str) {
 #endif
 }
 
-WindowDimensions qrosturm::get_max_dimensions() {
-#ifdef _WIN32
-    WindowDimensions dimensions;
-
-    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-    GetConsoleScreenBufferInfo(StdOut, &csbiInfo);
-
-    dimensions.columns = csbiInfo.srWindow.Right - csbiInfo.srWindow.Left;
-    dimensions.lines = csbiInfo.srWindow.Bottom - csbiInfo.srWindow.Top;
-    
-    return dimensions;
-#else
-
-#endif
-}
+//WindowDimensions qrosturm::get_max_dimensions() {
+//#ifdef _WIN32
+//    WindowDimensions dimensions;
+//
+//    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+//    GetConsoleScreenBufferInfo(StdOut, &csbiInfo);
+//
+//    dimensions.columns = csbiInfo.srWindow.Right - csbiInfo.srWindow.Left;
+//    dimensions.lines = csbiInfo.srWindow.Bottom - csbiInfo.srWindow.Top;
+//    
+//    return dimensions;
+//#else
+//
+//#endif
+//}
